@@ -10,7 +10,7 @@
 
 // function prototypes
 std::vector<std::string> split(const std::string&, const std::string&);
-std::map<std::string, std::vector<float> > read_csv(std::string&);
+arma::Mat<float> read_csv(std::string&);
 
 int main(int argc, char *argv[]) {
   return EXIT_SUCCESS;
@@ -30,9 +30,11 @@ std::vector<std::string> split(const std::string& line, const std::string& delim
   return tokens;
 }
 
-arma::Mat read_csv(std::string& filepath) {
+arma::Mat<float> read_csv(std::string& filepath) {
 // std::map<std::string, std::vector<float> > read_csv(std::string& filepath) {
-  // arma::Mat mat;
+  arma::Mat<float> mat;
+
+  std::cout << mat << std::endl;
   std::map<std::string, std::vector<float> > df;
   std::vector<std::string> col;
   std::vector<std::string> buffer;
@@ -54,5 +56,5 @@ arma::Mat read_csv(std::string& filepath) {
       df[col[i]].push_back(stof(buffer[i]));
   }
 
-  return df;
+  return mat;
 }
