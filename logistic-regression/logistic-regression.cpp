@@ -1,12 +1,12 @@
 #include <cstdlib>    // C standard library
 #include <iostream>   // I/O streaming
 #include <vector>     // better than arrays
-#include <map>        // for simulated dataframe
+#include <map>        // key value store
 #include <fstream>    // file streaming
 #include <cmath>      // math functions
 #include <string>     // string utilities
-#include <armadillo>
-#include <chrono>
+#include <armadillo>  // matrix operations
+#include <chrono>     // time
 
 using namespace std;
 using namespace arma;
@@ -17,15 +17,15 @@ using namespace chrono;
 
 // type aliases
 typedef map<string, vector<double> > Dataframe;
-// struct {}
 
 // function prototypes
+mat sigmoid(mat z);
 Dataframe read_csv(string);
 vector<string> split(const string&, const string&);
 string strip(const string&, const string&);
-mat sigmoid(mat z);
 
 // entry point
+// main logic
 int main(int argc, char *argv[]) {
   Dataframe df = read_csv(FILEPATH);
 
@@ -34,11 +34,11 @@ int main(int argc, char *argv[]) {
   double specificity = 0;
   double learning_rate = 0.001;
 
-  mat weights(2, 1, fill::ones);
-  mat labels(df["ESR"]);
-  mat prob_vector(32, 1, fill::zeros);
-  mat error(32, 1);
-  mat data_matrix = join_rows(
+  mat weights(2, 1, fill::ones);          // one filled column-vector [2, 1]
+  mat labels(df["ESR"]);                  // ESR column vector (one hot encoded values) [32, 1]
+  mat prob_vector(32, 1, fill::zeros);    // zero filled column vector [32, 1]
+  mat error(32, 1);                       // error/cost column vector [32, 1]
+  mat data_matrix = join_rows(            // [32, 2] matrix - first col is ones, seconds col is fibrinogen
     mat(32, 1, fill::ones),
     mat(df["fibrinogen"])
   );
@@ -49,6 +49,7 @@ int main(int argc, char *argv[]) {
   
   startTime = system_clock::now();
 
+  // gradient descent
   for (int i = 0; i < 500000; i++) {
     prob_vector = sigmoid(data_matrix * weights);
     error = labels - prob_vector;
@@ -64,44 +65,43 @@ int main(int argc, char *argv[]) {
   return EXIT_SUCCESS;
 }
 
+// calculate the logit on a matrix
+mat sigmoid(mat z) {
+  return (1 / (1 + arma::exp(-z)));
+}
+
 Dataframe read_csv(string filepath) {
   Dataframe df;
-  ifstream fin;
+  ifstream fin(filepath);
   char buffer[256];
   vector<string> attrs;
   vector<string> vals;
-  int cols = 0;
 
-  fin.open(filepath);
-
+  // check if file opened
   if (!fin) {
     cout << "[ERROR] Unable to open file: " << filepath << endl;
     exit(EXIT_FAILURE);
   }
 
-  fin.getline(buffer, 256, '\n');  // get column names
+  fin.getline(buffer, 256, '\n');   // read first line of csv file - column names
   attrs = split(buffer, ",");
-  cols = attrs.size();
 
-  for (int i = 0; i < cols; i++) {
+  // clean strip double quotes from column names
+  for (int i = 0; i < attrs.size(); i++)
     attrs[i] = strip(attrs[i], "\"");
-  }
 
   // read remaining data
   while (fin.getline(buffer, 256, '\n')) {
     vals = split(buffer, ",");
     
-    for (int i = 1; i < cols; i++) {
-      string current_attr = attrs[i];
+    for (int i = 1; i < attrs.size(); i++) {
 
-      if (current_attr == "ESR")
+      // one hot encode ESR values
+      if (attrs[i] == "ESR")
         vals[i] = vals[i][5] == '>' ? "1" : "0";
 
       vals[i] = strip(vals[i], "\"");
-
-      double temp = stof(vals[i]);
-
-      df[attrs[i]].push_back(temp);
+      df[attrs[i]].push_back(stof(vals[i]));  // cast string value to float and save to dataframe
     }
   }
 
@@ -142,6 +142,3 @@ string strip(const string& str, const string& delim) {
   return final_str;
 }
 
-mat sigmoid(mat z) {
-  return (1 / (1 + arma::exp(-z)));
-}
