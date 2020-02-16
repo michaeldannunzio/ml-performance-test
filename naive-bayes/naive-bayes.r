@@ -16,7 +16,28 @@ nb1 <- naiveBayes(survived ~ pclass+age+sex , data = train)
 nb1
 # predict on test data
 predictions_class <- predict(nb1, newdata=test, type="class")
+# variables for calculating metrics
+tp <- 0
+tn <- 0
+fp <- 0
+fn <- 0
+# predictions as integer vector
+predVec <- as.integer(predictions_class)
+
+# find tp, tn, fp, fn
+for (x in 1:146)
+{
+  if (predVec[x] == 1) {if (test$survived[x] == 0) tn <- tn + 1 else fn <- fn + 1}
+  if (predVec[x] == 2) {if (test$survived[x] == 1) tp <- tp + 1 else fp <- fp + 1}
+}
+# calculate metrics
+ac <- ((tp + tn) / nrow(test))
+print(paste("Accuracy: ", ac))
+se <- (tp / (tp + fn))
+print(paste("Sensitivity: ", se))
+sp <- (tn / (tn + fp))
+print(paste("Specificity: ", sp))
 # predictions_raw <- predict(nb1, newdata=test, type="raw")
-# head(predictions_raw)
 # view confusion matrix and statistics
 confusionMatrix(predictions_class, test$survived, positive = "1")
+
