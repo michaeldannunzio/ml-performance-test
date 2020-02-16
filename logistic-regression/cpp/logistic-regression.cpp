@@ -10,27 +10,30 @@
 
 using namespace std;
 using namespace arma;
+using namespace chrono;
 
 // preprocessor macros
 #define FILEPATH "../plasma.csv"
 
 // type aliases
 typedef map<string, vector<double> > Dataframe;
+// struct {}
 
 // function prototypes
-Dataframe read_csv(string&);
+Dataframe read_csv(string);
 vector<string> split(const string&, const string&);
 string strip(const string&, const string&);
-
 mat sigmoid(mat z);
 
 // entry point
 int main(int argc, char *argv[]) {
-  string filepath(FILEPATH);
+  Dataframe df = read_csv(FILEPATH);
 
-  Dataframe df = read_csv(filepath);
-
+  double accuracy = 0;
+  double sensitivity = 0;
+  double specificity = 0;
   double learning_rate = 0.001;
+
   mat weights(2, 1, fill::ones);
   mat labels(df["ESR"]);
   mat prob_vector(32, 1, fill::zeros);
@@ -40,18 +43,28 @@ int main(int argc, char *argv[]) {
     mat(df["fibrinogen"])
   );
 
+  time_point<system_clock> startTime;
+  time_point<system_clock> endTime;
+  long long elapsedTime;
+  
+  startTime = system_clock::now();
+
   for (int i = 0; i < 500000; i++) {
     prob_vector = sigmoid(data_matrix * weights);
     error = labels - prob_vector;
     weights = weights + learning_rate * data_matrix.t() * error;
   }
 
+  endTime = system_clock::now();
+  elapsedTime = duration_cast<milliseconds>(endTime - startTime).count();
+
+  cout << "Duration (s): " << (elapsedTime / 1000.0) << endl;
   weights.print("weights = ");
   
   return EXIT_SUCCESS;
 }
 
-Dataframe read_csv(string& filepath) {
+Dataframe read_csv(string filepath) {
   Dataframe df;
   ifstream fin;
   char buffer[256];
