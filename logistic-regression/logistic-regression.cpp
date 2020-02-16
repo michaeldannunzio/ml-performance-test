@@ -13,7 +13,7 @@ using namespace arma;
 using namespace chrono;
 
 // preprocessor macros
-#define FILEPATH "../plasma.csv"
+#define FILEPATH "./plasma.csv"
 
 // type aliases
 typedef map<string, vector<double> > Dataframe;
