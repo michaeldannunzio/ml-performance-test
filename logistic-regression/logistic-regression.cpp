@@ -29,16 +29,13 @@ string strip(const string&, const string&);
 int main(int argc, char *argv[]) {
   Dataframe df = read_csv(FILEPATH);
 
-  double accuracy = 0;
-  double sensitivity = 0;
-  double specificity = 0;
   double learning_rate = 0.001;
 
   mat weights(2, 1, fill::ones);          // one filled column-vector [2, 1]
   mat labels(df["ESR"]);                  // ESR column vector (one hot encoded values) [32, 1]
   mat prob_vector(32, 1, fill::zeros);    // zero filled column vector [32, 1]
   mat error(32, 1);                       // error/cost column vector [32, 1]
-  mat data_matrix = join_rows(            // [32, 2] matrix - first col is ones, seconds col is fibrinogen
+  mat data_matrix = join_rows(            // [32, 2] matrix - first is ones, second fibrinogen
     mat(32, 1, fill::ones),
     mat(df["fibrinogen"])
   );
@@ -67,7 +64,7 @@ int main(int argc, char *argv[]) {
 
 // calculate the logit on a matrix
 mat sigmoid(mat z) {
-  return (1 / (1 + arma::exp(-z)));
+  return (1 / (1 + exp(-z)));
 }
 
 Dataframe read_csv(string filepath) {
@@ -141,4 +138,3 @@ string strip(const string& str, const string& delim) {
 
   return final_str;
 }
-
