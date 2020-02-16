@@ -35,6 +35,9 @@ int main(int argc, char *argv[]) {
   Dataframe train = df_split[0];
   Dataframe test = df_split[1];
 
+  display(train);
+  display(test);
+
   return EXIT_SUCCESS;
 }
 
@@ -45,6 +48,14 @@ vector<Dataframe> train_test_split(Dataframe df) {
 
   for (Dataframe::iterator it = df.begin(); it != df.end(); it++)
     attrs.push_back(it->first);
+
+  for (int i = 0; i < df[attrs[0]].size(); i++)
+    if (i < 900)
+      for (int j = 0; j < attrs.size(); j++)
+        train[attrs[j]].push_back(df[attrs[j]][i]);
+    else
+      for (int j = 0; j < attrs.size(); j++)
+        test[attrs[j]].push_back(df[attrs[j]][i]);
 
   vector<Dataframe> df_split = { train, test };
 
