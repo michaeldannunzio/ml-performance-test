@@ -14,13 +14,14 @@ using namespace chrono;
 
 // preprocessor macros
 #define FILEPATH "./titanic_project.csv"
+#define TRAIN_TEST_SPLIT_INDEX 900
 
 // type aliases
 typedef map<string, vector<double> > Dataframe;
 
 // function prototypes
 Dataframe read_csv(string);
-vector<Dataframe> train_test_split(Dataframe);
+tuple<Dataframe, Dataframe> train_test_split(Dataframe, int);
 vector<string> split(const string&, const string&);
 string strip(const string&, const string&);
 void display(Dataframe);
@@ -29,37 +30,38 @@ void display(Dataframe);
 // main logic
 int main(int argc, char *argv[]) {
   Dataframe df = read_csv(FILEPATH);
-  display(df);
+  Dataframe train, test;
+  tie(train, test) = train_test_split(df, TRAIN_TEST_SPLIT_INDEX);
 
-  vector<Dataframe> df_split = train_test_split(df);
-  Dataframe train = df_split[0];
-  Dataframe test = df_split[1];
+  // display(df);
+  // display(train);
+  // display(test);
 
-  display(train);
-  display(test);
+
 
   return EXIT_SUCCESS;
 }
 
-vector<Dataframe> train_test_split(Dataframe df) {
+tuple<Dataframe, Dataframe> train_test_split(Dataframe df, int split_index) {
   Dataframe train;
   Dataframe test;
   vector<string> attrs;
 
+  // get column names
   for (Dataframe::iterator it = df.begin(); it != df.end(); it++)
     attrs.push_back(it->first);
 
+  // iterate through dataset
+  // split on index 900
   for (int i = 0; i < df[attrs[0]].size(); i++)
-    if (i < 900)
+    if (i < split_index)
       for (int j = 0; j < attrs.size(); j++)
         train[attrs[j]].push_back(df[attrs[j]][i]);
     else
       for (int j = 0; j < attrs.size(); j++)
         test[attrs[j]].push_back(df[attrs[j]][i]);
 
-  vector<Dataframe> df_split = { train, test };
-
-  return df_split;
+  return { train, test };
 }
 
 Dataframe read_csv(string filepath) {
@@ -79,8 +81,10 @@ Dataframe read_csv(string filepath) {
   attrs = split(buffer, ",");
 
   // clean strip double quotes from column names
-  for (int i = 0; i < attrs.size(); i++)
+  for (int i = 1; i < attrs.size(); i++)
     attrs[i] = strip(attrs[i], "\"");
+
+  attrs[attrs.size()-1] = attrs[attrs.size()-1].substr(0, attrs[attrs.size()-1].length()-1);
 
   // read remaining data
   while (fin.getline(buffer, 256, '\n')) {
