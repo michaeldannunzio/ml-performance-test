@@ -1,3 +1,10 @@
+###################################################################
+# Project 4
+# Part 1 -- Logistic Regression
+# CS 4375.501
+# Zain Husain & Michael D'Annunzio
+###################################################################
+
 #include <cstdlib>    // C standard library
 #include <iostream>   // I/O streaming
 #include <vector>     // better than arrays
