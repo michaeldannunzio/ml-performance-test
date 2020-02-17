@@ -6,7 +6,7 @@
 #include <cmath>      // math functions
 #include <string>     // string utilities
 #include <armadillo>  // matrix operations
-#include <chrono>     // time
+#include <ctime>     // time
 
 using namespace std;
 using namespace arma;
@@ -30,14 +30,17 @@ void display(vector<double>);
 // entry point
 // main logic
 int main(int argc, char *argv[]) {
-  int tp;
-  int tn;
-  int fp;
-  int fn;
+  unsigned int tp = 0;
+  unsigned int tn = 0;
+  unsigned int fp = 0;
+  unsigned int fn = 0;
 
   double acc;
   double sens;
   double spec;
+
+  clock_t startTime;
+  clock_t endTime;
 
   Dataframe df = read_csv(FILEPATH);
 
@@ -55,6 +58,8 @@ int main(int argc, char *argv[]) {
 
   mat train = data.rows(0, 900);
   mat test = data.rows(901, data.n_rows - 1);
+
+  startTime = clock();
 
   vec apriori = {
     mat(train.rows(find(train.col(survived) == 0))).n_rows / (double) train.n_rows,
@@ -130,14 +135,48 @@ int main(int argc, char *argv[]) {
     return prob_survived;
   };
 
+  auto predict = [](double x) {
+    return (int)round(x);
+  };
+
   vec raw;
+  // vec preds(146, fill::zeros);
+
   for (int i = 0; i < 146; i++) {
     int _pclass = test.col(pclass)[i];
     int _sex = test.col(sex)[i];
     int _age = test.col(age)[i];
 
     raw = calc_raw_prob(_pclass, _sex, _age); // col vector is size 2
+    int pred = predict(raw[0]);
+    // preds[i] = predict(pred);
+
+    if (pred == 0)
+      if (test.col(survived)[i] == 0)
+        tn += 1;
+      else
+        fn += 1;
+    else
+      if (test.col(survived)[i] == 1)
+        tp += 1;
+      else
+        fp += 1;
   }
+
+  acc = (tp + tn) / (double) test.n_rows;
+  sens = (double) tp / (tp + fn);
+  spec = (double) tn / (tn + fp);
+
+  endTime = clock();
+
+  cout << "Duration (s): " << (((float)endTime - (float)startTime) / CLOCKS_PER_SEC)*1000 << endl;
+  cout << "True Positive: " << tp << endl;
+  cout << "True Negative: " << tn << endl;
+  cout << "False Positive: " << fp << endl;
+  cout << "False Negative: " << fn << endl;
+  cout << "Accuracy: " << acc << endl;
+  cout << "Sensitivity: " << sens << endl;
+  cout << "Specificity: " << spec << endl;
 
   return EXIT_SUCCESS;
 }
