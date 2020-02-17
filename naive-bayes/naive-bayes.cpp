@@ -66,22 +66,42 @@ int main(int argc, char *argv[]) {
   vector<vector<double> > lh_sex = {{ 0, 0 }, { 0, 0 }};
   
   for (int sv = 0; sv <= 1; sv++)
-    for (int sx = 2; sx <= 3; sx++) {
+    for (int sx = 0; sx <= 1; sx++) {
       int nrow = 0;
       for (int i = 0; i < df["pclass"].size(); i++)
         if (df["sex"][i] == sx && df["survived"][i] == sv)
           nrow++;
-      lh_sex[sv][sx - 2] = nrow / (double) count_survived[sv];
+      lh_sex[sv][sx] = nrow / (double) count_survived[sv];
     }
 
-  for (vector<double> v : lh_sex)
-  for (double i : v)
-  cout << i << endl;
+  vector<double> age_mean = { 0, 0 };
+  vector<double> age_var = { 0, 0 };
+
+  auto mean = [](vector<double> vec) {
+    double _mean = 0;
+    for (double v : vec)
+      _mean += v;
+
+    return _mean / (double) vec.size();
+  };
+
+  auto variance = [](vector<double> vec) {
+    return 0.00;
+  };
+
+  for (int sv = 0; sv < 2; sv++) {
+    for
+  }
+
+  for (int i = 0; i < 2; i++) {
+    cout << age_mean[i] << "\t";
+    cout << age_var[i] << endl;
+  }
   
 
   // display(df);
   // display(train);
-  // display(test);
+  display(test);
   // display(apriori);
 
 
