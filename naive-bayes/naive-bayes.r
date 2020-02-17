@@ -6,7 +6,7 @@
 ###################################################################
 
 # Load titanic csv into R
-titanic_project <- read.csv("/Users/zainhusain/Documents/SE4375/titanic_project.csv")
+titanic_project <- read.csv("../titanic_project.csv")
 
 # make copy and change columns to factors
 tp <- titanic_project
