@@ -25,6 +25,7 @@ tuple<Dataframe, Dataframe> train_test_split(Dataframe, int);
 vector<string> split(const string&, const string&);
 string strip(const string&, const string&);
 void display(Dataframe);
+void display(vector<double>);
 
 // entry point
 // main logic
@@ -33,14 +34,61 @@ int main(int argc, char *argv[]) {
   Dataframe train, test;
   tie(train, test) = train_test_split(df, TRAIN_TEST_SPLIT_INDEX);
 
+  auto cond_index = [](vector<double> vec, double val) {
+    vector<double> res;
+    for (double v : vec)
+      if (v == val)
+        res.push_back(v);
+    return res;
+  };
+
+  vector<double> apriori = {
+    cond_index(df["survived"], 0).size() / (double) df["survived"].size(),
+    cond_index(df["survived"], 1).size() / (double) df["survived"].size()
+  };
+
+  vector<double> count_survived = {
+    (double) cond_index(df["survived"], 0).size(),
+    (double) cond_index(df["survived"], 1).size()
+  };
+
+  vector<vector<double> > lh_pclass = {{ 0, 0, 0, }, { 0, 0, 0, }};
+
+  for (int sv = 0; sv <= 1; sv++)
+    for (int pc = 1; pc <= 3; pc++) {
+      int nrow = 0;
+      for (int i = 0; i < df["pclass"].size(); i++)
+        if (df["pclass"][i] == pc && df["survived"][i] == sv)
+          nrow++;
+      lh_pclass[sv][pc - 1] = nrow / (double) count_survived[sv];
+    }
+
+  vector<vector<double> > lh_sex = {{ 0, 0 }, { 0, 0 }};
+  
+  for (int sv = 0; sv <= 1; sv++)
+    for (int sx = 2; sx <= 3; sx++) {
+      int nrow = 0;
+      for (int i = 0; i < df["pclass"].size(); i++)
+        if (df["sex"][i] == sx && df["survived"][i] == sv)
+          nrow++;
+      lh_sex[sv][sx - 2] = nrow / (double) count_survived[sv];
+    }
+
+  for (vector<double> v : lh_sex)
+  for (double i : v)
+  cout << i << endl;
+  
+
   // display(df);
   // display(train);
   // display(test);
-
+  // display(apriori);
 
 
   return EXIT_SUCCESS;
 }
+
+// vector<double> cond_index(vector<double> v, void* func) 
 
 tuple<Dataframe, Dataframe> train_test_split(Dataframe df, int split_index) {
   Dataframe train;
@@ -150,4 +198,9 @@ void display(Dataframe df) {
     }
     cout << endl;
   }
+}
+
+void display(vector<double> vec) {
+  for (double v : vec)
+    cout << v << endl;
 }
