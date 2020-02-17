@@ -51,6 +51,8 @@ learning_rate <- 0.001
 
 # start timing
 start <- proc.time()
+
+# learning loop
 for (i in 1:500000){
   prob_vector <- sigmoid(data_matrix %*% weights)
   error <- labels - prob_vector
