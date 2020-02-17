@@ -2,7 +2,7 @@
 # Project 4
 # Part 1 -- Logistic Regression
 # CS 4375.501
-# Zain Husain & Michael D'Annunzio
+# Michael D'Annunzio & Zain Husain
 ###################################################################
 
 #include <cstdlib>    // C standard library
