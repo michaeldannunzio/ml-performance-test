@@ -30,85 +30,117 @@ void display(vector<double>);
 // entry point
 // main logic
 int main(int argc, char *argv[]) {
+  int tp;
+  int tn;
+  int fp;
+  int fn;
+
+  double acc;
+  double sens;
+  double spec;
+
   Dataframe df = read_csv(FILEPATH);
-  Dataframe train, test;
-  tie(train, test) = train_test_split(df, TRAIN_TEST_SPLIT_INDEX);
 
-  auto cond_index = [](vector<double> vec, double val) {
-    vector<double> res;
-    for (double v : vec)
-      if (v == val)
-        res.push_back(v);
-    return res;
+  int age = 0;
+  int pclass = 1;
+  int sex = 2;
+  int survived = 3;
+
+  mat data = join_rows(
+    mat(df["age"]),
+    mat(df["pclass"]),
+    mat(df["sex"]),
+    mat(df["survived"])
+  );
+
+  mat train = data.rows(0, 900);
+  mat test = data.rows(901, data.n_rows - 1);
+
+  vec apriori = {
+    mat(train.rows(find(train.col(survived) == 0))).n_rows / (double) train.n_rows,
+    mat(train.rows(find(train.col(survived) == 1))).n_rows / (double) train.n_rows
   };
 
-  vector<double> apriori = {
-    cond_index(df["survived"], 0).size() / (double) df["survived"].size(),
-    cond_index(df["survived"], 1).size() / (double) df["survived"].size()
+  uvec count_survived = {
+    mat(train.rows(find(train.col(survived) == 0))).n_rows,
+    mat(train.rows(find(train.col(survived) == 1))).n_rows
   };
 
-  vector<double> count_survived = {
-    (double) cond_index(df["survived"], 0).size(),
-    (double) cond_index(df["survived"], 1).size()
-  };
-
-  vector<vector<double> > lh_pclass = {{ 0, 0, 0, }, { 0, 0, 0, }};
-
-  for (int sv = 0; sv <= 1; sv++)
-    for (int pc = 1; pc <= 3; pc++) {
-      int nrow = 0;
-      for (int i = 0; i < df["pclass"].size(); i++)
-        if (df["pclass"][i] == pc && df["survived"][i] == sv)
-          nrow++;
-      lh_pclass[sv][pc - 1] = nrow / (double) count_survived[sv];
-    }
-
-  vector<vector<double> > lh_sex = {{ 0, 0 }, { 0, 0 }};
-  
-  for (int sv = 0; sv <= 1; sv++)
-    for (int sx = 0; sx <= 1; sx++) {
-      int nrow = 0;
-      for (int i = 0; i < df["pclass"].size(); i++)
-        if (df["sex"][i] == sx && df["survived"][i] == sv)
-          nrow++;
-      lh_sex[sv][sx] = nrow / (double) count_survived[sv];
-    }
-
-  vector<double> age_mean = { 0, 0 };
-  vector<double> age_var = { 0, 0 };
-
-  auto mean = [](vector<double> vec) {
-    double _mean = 0;
-    for (double v : vec)
-      _mean += v;
-
-    return _mean / (double) vec.size();
-  };
-
-  auto variance = [](vector<double> vec) {
-    return 0.00;
-  };
-
+  mat lh_pclass(2, 3, fill::zeros);
   for (int sv = 0; sv < 2; sv++) {
-    for
+    mat S = mat(train.rows(find(train.col(survived) == sv)));
+    for (int pc = 0; pc < 3; pc++) {
+      lh_pclass(sv, pc) = mat(S.rows(find(S.col(pclass) == pc + 1))).n_rows / (double) count_survived[sv];
+    }
   }
 
-  for (int i = 0; i < 2; i++) {
-    cout << age_mean[i] << "\t";
-    cout << age_var[i] << endl;
+  mat lh_sex(2, 2, fill::zeros);
+  for (int sv = 0; sv < 2; sv++) {
+    mat S = mat(train.rows(find(train.col(survived) == sv)));
+    for (int sx = 0; sx < 2; sx++) {
+      lh_sex(sv, sx) = mat(S.rows(find(S.col(sex) == sx))).n_rows / (double) count_survived[sv];
+    }
   }
-  
 
-  // display(df);
-  // display(train);
-  display(test);
-  // display(apriori);
+  vec age_mean = { 0, 0 };
+  vec age_var = { 0, 0 };
+  for (int sv = 0; sv < 2; sv++) {
+    mat S = mat(train.rows(find(train.col(survived) == sv)));
+    age_mean[sv] = mean(S.col(age));
+    age_var[sv] = var(S.col(age));
+  }
 
+  auto calc_age_lh = [](int _age, double mean_v, double var_v) {
+    double x = (1 / sqrt(2 * M_PI * var_v));
+    double y = pow((_age - mean_v), 2) / (2 * var_v);
+    return x * y;
+  };
+
+  auto calc_raw_prob = [lh_pclass, lh_sex, apriori, calc_age_lh, age_mean, age_var](int _pclass, int _sex, int _age) {
+    double num_s = (
+      lh_pclass(1, _pclass - 1) *
+      lh_sex(1, _sex) *
+      apriori[1] *
+      calc_age_lh(_age, age_mean[1], age_var[1])
+    );
+
+    double num_p = (
+      lh_pclass(0, _pclass - 1) *
+      lh_sex(0, _sex) *
+      apriori[0] *
+      calc_age_lh(_age, age_mean[0], age_var[0])
+    );
+
+    double denominator = (
+      lh_pclass(1, _pclass - 1) *
+      lh_sex(1, _sex) *
+      calc_age_lh(_age, age_mean[1], age_var[1]) *
+      apriori[1] +
+      lh_pclass(0, _pclass - 1) *
+      lh_sex(0, _sex) *
+      calc_age_lh(_age, age_mean[0], age_var[0]) *
+      apriori[0]
+    );
+
+    vec prob_survived = {
+      num_s / denominator,
+      num_p / denominator
+    };
+
+    return prob_survived;
+  };
+
+  vec raw;
+  for (int i = 0; i < 146; i++) {
+    int _pclass = test.col(pclass)[i];
+    int _sex = test.col(sex)[i];
+    int _age = test.col(age)[i];
+
+    raw = calc_raw_prob(_pclass, _sex, _age); // col vector is size 2
+  }
 
   return EXIT_SUCCESS;
 }
-
-// vector<double> cond_index(vector<double> v, void* func) 
 
 tuple<Dataframe, Dataframe> train_test_split(Dataframe df, int split_index) {
   Dataframe train;
@@ -218,9 +250,4 @@ void display(Dataframe df) {
     }
     cout << endl;
   }
-}
-
-void display(vector<double> vec) {
-  for (double v : vec)
-    cout << v << endl;
 }
