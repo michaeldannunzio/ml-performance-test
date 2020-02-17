@@ -1,3 +1,10 @@
+###################################################################
+# Project 4
+# Part 2 -- Naive Bayes
+# CS 4375.501
+# Michael D'Annunzio & Zain Husain
+###################################################################
+
 #include <cstdlib>    // C standard library
 #include <iostream>   // I/O streaming
 #include <vector>     // better than arrays
