@@ -1,9 +1,9 @@
-###################################################################
-# Project 4
-# Part 1 -- Logistic Regression
-# CS 4375.501
-# Michael D'Annunzio & Zain Husain
-###################################################################
+/**
+ * Project 4
+ * Part 1 - Logistic Regression
+ * CS 4375.501
+ * Michael D'Annunzio & Zain Husain
+ */
 
 #include <cstdlib>    // C standard library
 #include <iostream>   // I/O streaming
