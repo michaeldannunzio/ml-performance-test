@@ -49,6 +49,7 @@ int main(int argc, char *argv[]) {
   int sex = 2;
   int survived = 3;
 
+  // make single matrix from typedef Dataframe
   mat data = join_rows(
     mat(df["age"]),
     mat(df["pclass"]),
@@ -56,6 +57,7 @@ int main(int argc, char *argv[]) {
     mat(df["survived"])
   );
 
+  // train-test split
   mat train = data.rows(0, 900);
   mat test = data.rows(901, data.n_rows - 1);
 
@@ -140,8 +142,8 @@ int main(int argc, char *argv[]) {
   };
 
   vec raw;
-  // vec preds(146, fill::zeros);
 
+  // testing
   for (int i = 0; i < 146; i++) {
     int _pclass = test.col(pclass)[i];
     int _sex = test.col(sex)[i];
@@ -149,7 +151,6 @@ int main(int argc, char *argv[]) {
 
     raw = calc_raw_prob(_pclass, _sex, _age); // col vector is size 2
     int pred = predict(raw[0]);
-    // preds[i] = predict(pred);
 
     if (pred == 0)
       if (test.col(survived)[i] == 0)
