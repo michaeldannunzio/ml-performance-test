@@ -6,7 +6,7 @@
 ###################################################################
 
 # Load titanic csv into R
-titanic_project <- read.csv("../titanic_project.csv")
+titanic_project <- read.csv("./titanic_project.csv")
 
 # make copy and change columns to factors
 tp <- titanic_project
@@ -21,6 +21,7 @@ test <- tp[901:1046,]
 # load e1071 library for Naive Bayes
 # install.packages("e1071")
 library(e1071)
+library(caret)
 
 # variables for calculating metrics
 tp <- 0

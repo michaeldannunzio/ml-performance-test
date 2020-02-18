@@ -177,7 +177,7 @@ int main(int argc, char *argv[]) {
 
   endTime = clock();
 
-  cout << "Duration (s): " << (((float)endTime - (float)startTime) / CLOCKS_PER_SEC)*1000 << endl;
+  cout << "Duration (s): " << (((float)endTime - (float)startTime) / CLOCKS_PER_SEC) << endl;
   cout << "True Positive: " << tp << endl;
   cout << "True Negative: " << tn << endl;
   cout << "False Positive: " << fp << endl;
